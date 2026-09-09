@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Trainingsplan Generator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg,#fff1f6,#f6f0ff);
+    color:#26212a; min-height:100vh;
+  }
+  .wrap { max-width: 900px; margin: auto; padding: 28px 18px 50px; }
+  h1 { margin-bottom: 8px; font-size: clamp(28px,5vw,44px); }
+  .sub { color:#6f6572; margin-top:0; }
+  .card {
+    background:#fff; border-radius:22px; padding:22px; margin-top:18px;
+    box-shadow:0 12px 35px rgba(50,30,60,.08);
+  }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+  label { display:block; font-weight:700; font-size:14px; margin-bottom:7px; }
+  select, input {
+    width:100%; padding:12px 13px; border:1px solid #ddd3dc; border-radius:12px;
+    font-size:15px; background:#fff;
+  }
+  button {
+    width:100%; border:0; border-radius:14px; padding:14px 18px; margin-top:18px;
+    background:#d9467d; color:white; font-weight:800; font-size:16px; cursor:pointer;
+  }
+  button:hover { background:#c53b70; }
+  .badge {
+    display:inline-block; background:#fbe0eb; color:#a52d60; padding:6px 10px;
+    border-radius:999px; font-size:13px; font-weight:800;
+  }
+  .exercise {
+    display:flex; justify-content:space-between; gap:15px; padding:15px 0;
+    border-bottom:1px solid #eee8ed;
+  }
+  .exercise:last-child { border-bottom:0; }
+  .name { font-weight:800; }
+  .meta { color:#716773; font-size:14px; margin-top:4px; }
+  .focus { color:#d9467d; font-weight:800; white-space:nowrap; }
+  .tip { background:#faf5f8; padding:13px; border-radius:12px; margin-top:15px; color:#625862; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💪 Fitness-Plan Generator</h1>
+  <p class="sub">Abwechslungsreiche Workouts mit wechselnden Schwerpunkten – Bauch, Beine, Po, Oberkörper oder Ganzkörper.</p>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="level">Fitnesslevel</label>
+        <select id="level">
+          <option value="Anfängerin">Anfängerin</option>
+          <option value="Fortgeschritten">Fortgeschritten</option>
+          <option value="Profi">Profi</option>
+        </select>
+      </div>
+      <div>
+        <label for="duration">Dauer</label>
+        <select id="duration">
+          <option value="30">30 Minuten</option>
+          <option value="45" selected>45 Minuten</option>
+          <option value="60">60 Minuten</option>
+        </select>
+      </div>
+      <div>
+        <label for="equipment">Equipment</label>
+        <select id="equipment">
+          <option value="home">Zuhause / ohne Geräte</option>
+          <option value="gym">Fitnessstudio</option>
+          <option value="mixed">Gemischt</option>
+        </select>
+      </div>
+      <div>
+        <label for="focus">Schwerpunkt</label>
+        <select id="focus">
+          <option value="random">🎲 Zufällig / abwechslungsreich</option>
+          <option value="Po">🍑 Po</option>
+          <option value="Beine">🦵 Beine</option>
+          <option value="Bauch">🔥 Bauch</option>
+          <option value="Oberkörper">💪 Oberkörper</option>
+          <option value="Ganzkörper">🏋️ Ganzkörper</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="generate()">✨ Trainingsplan generieren</button>
+  </div>
+
+  <div id="result" class="card hidden"></div>
+</div>
+
+<script>
+const exercises = {
+  Po: [
+    ["Hip Thrust", "3 × 10–12", "Po"],
+    ["Glute Bridge", "3 × 12–15", "Po"],
+    ["Donkey Kicks", "3 × 12 je Seite", "Po"],
+    ["Fire Hydrants", "3 × 12 je Seite", "Po"],
+    ["Bulgarian Split Squat", "3 × 8–12 je Seite", "Po/Beine"],
+    ["Sumo Squat", "3 × 10–12", "Po/Beine"],
+    ["Step-ups", "3 × 10 je Seite", "Po/Beine"],
+    ["Kickbacks", "3 × 12–15 je Seite", "Po"]
+  ],
+  Beine: [
+    ["Kniebeugen", "3 × 10–15", "Beine"],
+    ["Ausfallschritte", "3 × 10 je Seite", "Beine"],
+    ["Reverse Lunges", "3 × 10 je Seite", "Beine"],
+    ["Wall Sit", "3 × 30–45 Sek.", "Beine"],
+    ["Romanian Deadlift", "3 × 10–12", "Beine/Po"],
+    ["Step-ups", "3 × 10 je Seite", "Beine/Po"],
+    ["Calf Raises", "3 × 15–20", "Waden"],
+    ["Bulgarian Split Squat", "3 × 8–12 je Seite", "Beine/Po"]
+  ],
+  Bauch: [
+    ["Crunches", "3 × 15–20", "Bauch"],
+    ["Reverse Crunches", "3 × 12–15", "Bauch"],
+    ["Leg Raises", "3 × 10–15", "Bauch"],
+    ["Dead Bug", "3 × 10 je Seite", "Core"],
+    ["Plank", "3 × 30–60 Sek.", "Core"],
+    ["Mountain Climbers", "3 × 30–45 Sek.", "Core"],
+    ["Russian Twists", "3 × 16–20", "Core"],
+    ["Bicycle Crunches", "3 × 16–20", "Bauch"]
+  ],
+  Oberkörper: [
+    ["Push-ups", "3 × 8–15", "Brust/Arme"],
+    ["Rudern", "3 × 10–12", "Rücken"],
+    ["Shoulder Press", "3 × 10–12", "Schultern"],
+    ["Lateral Raises", "3 × 12–15", "Schultern"],
+    ["Trizeps Dips", "3 × 8–12", "Trizeps"],
+    ["Bizeps Curls", "3 × 10–15", "Bizeps"],
+    ["Superman", "3 × 12–15", "Rücken"],
+    ["Plank Shoulder Taps", "3 × 10 je Seite", "Core/Schultern"]
+  ]
+};
+
+const equipmentGym = {
+  "Hip Thrust":"Hip Thrust Maschine / Langhantel", "Rudern":"Kabelzug-Rudern",
+  "Shoulder Press":"Schulterpresse", "Lateral Raises":"Kurzhantel-Seitheben",
+  "Bizeps Curls":"Kurzhantel-Curls", "Trizeps Dips":"Dip-Maschine",
+  "Romanian Deadlift":"Langhantel Romanian Deadlift"
+};
+
+function shuffle(a) {
+  return [...a].sort(() => Math.random() - 0.5);
+}
+
+function pickFocus() {
+  const pool = ["Po","Beine","Bauch","Oberkörper","Ganzkörper"];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function generate() {
+  const level = document.getElementById("level").value;
+  const duration = Number(document.getElementById("duration").value);
+  const equipment = document.getElementById("equipment").value;
+  let focus = document.getElementById("focus").value;
+  if (focus === "random") focus = pickFocus();
+
+  let list = [];
+  if (focus === "Ganzkörper") {
+    const categories = shuffle(["Po","Beine","Bauch","Oberkörper"]);
+    categories.forEach(c => list.push(...shuffle(exercises[c]).slice(0,2)));
+  } else {
+    list = shuffle(exercises[focus]);
+    // Kleine Beimischung aus einem anderen Bereich für mehr Abwechslung.
+    const secondary = shuffle(["Po","Beine","Bauch","Oberkörper"].filter(x=>x!==focus))[0];
+    list = list.slice(0, duration <= 30 ? 5 : duration <= 45 ? 7 : 9);
+    if (duration >= 45) list.push(...shuffle(exercises[secondary]).slice(0,1));
+    list = shuffle(list);
+  }
+
+  const multiplier = level === "Anfängerin" ? "2–3 Sätze" : level === "Fortgeschritten" ? "3 Sätze" : "3–4 Sätze";
+  const pause = level === "Anfängerin" ? "60–90 Sek." : level === "Fortgeschritten" ? "45–75 Sek." : "30–60 Sek.";
+
+  let html = `<span class="badge">${focus}-Fokus</span>
+  <h2>${duration} Minuten · ${level}</h2>
+  <p><strong>Aufwärmen:</strong> 5–8 Minuten lockeres Cardio + Mobilisation.</p>`;
+
+  list.forEach((e,i) => {
+    let name = e[0];
+    if (equipment === "gym" && equipmentGym[name]) name = equipmentGym[name];
+    html += `<div class="exercise">
+      <div><div class="name">${i+1}. ${name}</div><div class="meta">${e[1]} · Pause: ${pause}</div></div>
+      <div class="focus">${e[2]}</div>
+    </div>`;
+  });
+
+  html += `<div class="tip"><strong>Finisher:</strong> 3–5 Minuten lockeres Cool-down und Dehnen. 
+  Wenn eine Übung Schmerzen verursacht, abbrechen und durch eine passende Variante ersetzen.</div>`;
+
+  const result = document.getElementById("result");
+  result.innerHTML = html;
+  result.classList.remove("hidden");
+  result.scrollIntoView({behavior:"smooth", block:"start"});
+}
+</script>
+</body>
+</html>
